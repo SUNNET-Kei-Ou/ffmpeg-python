@@ -8,6 +8,7 @@ import copy
 import operator
 import subprocess
 import asyncio
+import sys
 
 from ._ffmpeg import input, output
 from .nodes import (
@@ -351,12 +352,17 @@ async def run_asyncio(
     stdin_stream = asyncio.subprocess.PIPE if pipe_stdin else None
     stdout_stream = asyncio.subprocess.PIPE if pipe_stdout or quiet else None
     stderr_stream = asyncio.subprocess.PIPE if pipe_stderr or quiet else None
+    loop = None
+    if sys.platform == 'win32':
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
 
     return await asyncio.create_subprocess_exec(
         *args,
         stdin=stdin_stream,
         stdout=stdout_stream,
-        stderr=stderr_stream
+        stderr=stderr_stream,
+        loop=loop
     )
 
 
